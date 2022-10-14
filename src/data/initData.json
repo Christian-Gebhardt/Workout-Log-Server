@@ -1,0 +1,16 @@
+{
+  "exercises": [
+    {
+      "name": "Bench Press",
+      "description": "Chest"
+    },
+    {
+      "name": "Pull Up",
+      "description": "Back / Latissimus"
+    },
+    {
+      "name": "Deadlift",
+      "description": "Lower Back"
+    }
+  ]
+}
