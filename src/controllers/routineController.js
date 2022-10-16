@@ -1,6 +1,7 @@
 const asyncHandler = require("express-async-handler");
 const Routine = require("../models/routineModel");
 const Workout = require("../models/workoutModel");
+const { getNextWorkout } = require("../utils/routineUtils");
 
 const getRoutines = asyncHandler(async (req, res) => {
   const userId = req.user._id;
@@ -15,13 +16,19 @@ const getRoutines = asyncHandler(async (req, res) => {
 });
 
 const addRoutine = asyncHandler(async (req, res) => {
+  const user = req.user;
   const routine = await Routine.create({
     ...req.body,
-    user: req.user._id,
+    user: user._id,
     workouts: [],
   });
 
   if (routine) {
+    // set routine as users active routine if not already set
+    if (!user.state.activeRoutine) {
+      user.state.activeRoutine = routine;
+      await user.save();
+    }
     res.status(201).json(routine);
   } else {
     res.status(400);
@@ -30,6 +37,7 @@ const addRoutine = asyncHandler(async (req, res) => {
 });
 
 const deleteRoutine = asyncHandler(async (req, res) => {
+  const user = req.user;
   const userId = req.user._id;
   const routineId = req.params.id;
 
@@ -42,11 +50,17 @@ const deleteRoutine = asyncHandler(async (req, res) => {
       _id: { $in: workoutIds },
     });
 
+    // if routine to delete is users activeRoutine, set activeRoutine to null
+    if (user.state.activeRoutine.equals(routineId)) {
+      user.state.activeRoutine = null;
+      await user.save();
+    }
+
     // then delete routine itself
     const routineDeleted = await Routine.deleteOne({ _id: routineId });
 
     if (workoutsDeleted && routineDeleted) {
-      res.status(200).json(isDeleted);
+      res.status(200).json(routineDeleted);
     } else {
       res.status(400);
       throw new Error("Cannot delete routine with id " + routineId);
@@ -75,6 +89,13 @@ const addWorkoutToRoutine = asyncHandler(async (req, res) => {
 
     if (newWorkout) {
       routine.workouts.push(newWorkout);
+
+      // if nextWorkout is not set yet (empty workout array)
+      if (!routine.nextWorkout) {
+        console.log("setting next workout");
+        routine.nextWorkout = newWorkout;
+      }
+
       await routine.save();
       res.status(201).json(routine);
     } else {
@@ -100,7 +121,27 @@ const deleteWorkoutFromRoutine = asyncHandler(async (req, res) => {
   const routine = await Routine.findById(routineId);
 
   if (routine && routine.user.equals(userId)) {
+    // set the next workout if it will be affected by deletion
+    if (routine.nextWorkout.equals(workoutId)) {
+      // if deleted workout is the next workout
+      if (routine.workouts.length <= 1) {
+        // if routine workouts will be empty after deletion
+        routine.nextWorkout = null;
+      } else {
+        // set next workout to the workout after the current next workout
+        routine.nextWorkout = getNextWorkout(
+          routine.workouts,
+          routine.nextWorkout
+        );
+      }
+    }
+
     const isDeleted = await Workout.findByIdAndDelete(workoutId);
+
+    // remove workout reference from the routine
+    routine.workouts = routine.workouts.filter((e) => !e.equals(workoutId));
+    // save changes to the routine document
+    await routine.save();
 
     if (isDeleted) {
       res.status(200).json(isDeleted);

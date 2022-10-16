@@ -26,6 +26,9 @@ const createUser = asyncHandler(async (req, res) => {
     email,
     password: hashedPassword,
     preferences: {},
+    state: {
+      lastLogin: Date.now(),
+    },
   });
 
   if (user) {
@@ -46,6 +49,10 @@ const loginUser = asyncHandler(async (req, res) => {
   const user = await User.findOne({ email });
 
   if (user && (await bcrypt.compare(password, user.password))) {
+    // set last login to now
+    user.state.lastLogin = Date.now();
+    await user.save();
+
     res.status(200).json({
       _id: user._id,
       email: user.email,

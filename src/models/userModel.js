@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+const preferencesSchema = require("./schemas/preferencesSchema");
+const stateSchema = require("./schemas/stateSchema");
 
 const userSchema = mongoose.Schema(
   {
@@ -44,6 +46,8 @@ const userSchema = mongoose.Schema(
       min: 0,
       max: 1500,
     },
+    state: stateSchema,
+    preferences: preferencesSchema,
   },
   {
     timestamps: true,
