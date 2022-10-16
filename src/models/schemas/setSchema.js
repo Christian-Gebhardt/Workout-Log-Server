@@ -1,12 +1,6 @@
 const mongoose = require("mongoose");
 
 const setSchema = mongoose.Schema({
-  setNumber: {
-    type: Number,
-    required: true,
-    min: 0,
-    max: 100,
-  },
   previousPerformance: {
     type: String,
     maxLength: 50,
@@ -21,6 +15,7 @@ const setSchema = mongoose.Schema({
   },
   setType: {
     type: String,
+    default: "W",
     enum: ["S", "W", "D", "G"],
   },
 });

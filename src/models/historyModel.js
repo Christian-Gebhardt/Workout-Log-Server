@@ -1,6 +1,4 @@
 const mongoose = require("mongoose");
-const CompletedWorkout = require("./completedWorkoutModel");
-const PersonalRecord = require("./personalRecordModel");
 
 const historySchema = mongoose.Schema({
   user: {
