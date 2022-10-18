@@ -1,4 +1,7 @@
 const mongoose = require("mongoose");
+const {
+  removeInvalidSetsFromCompletedWorkout,
+} = require("../utils/completedWorkoutUtil");
 const exerciseInstanceSchema = require("./schemas/exerciseInstanceSchema");
 
 const completedWorkoutSchema = mongoose.Schema(
@@ -14,5 +17,7 @@ const completedWorkoutSchema = mongoose.Schema(
     timestamps: true,
   }
 );
+
+completedWorkoutSchema.pre("save", removeInvalidSetsFromCompletedWorkout);
 
 module.exports = mongoose.model("CompletedWorkout", completedWorkoutSchema);
