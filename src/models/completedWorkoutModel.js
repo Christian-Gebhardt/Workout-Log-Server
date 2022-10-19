@@ -18,6 +18,4 @@ const completedWorkoutSchema = mongoose.Schema(
   }
 );
 
-completedWorkoutSchema.pre("save", removeInvalidSetsFromCompletedWorkout);
-
 module.exports = mongoose.model("CompletedWorkout", completedWorkoutSchema);

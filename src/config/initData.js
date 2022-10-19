@@ -7,6 +7,7 @@ const initData = async (data) => {
       const exerciseCount = await Exercise.count();
       if (exerciseCount == 0) {
         await Exercise.insertMany(data.exercises);
+        console.log("Initialized database...");
       }
     }
   } catch (error) {

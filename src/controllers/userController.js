@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 
 const asyncHandler = require("express-async-handler");
 const User = require("../models/userModel");
+const History = require("../models/historyModel");
 
 const createUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
@@ -31,7 +32,12 @@ const createUser = asyncHandler(async (req, res) => {
     },
   });
 
-  if (user) {
+  // create history for user
+  const history = await History.create({
+    user: user._id,
+  });
+
+  if (user && history) {
     res.status(201).json({
       _id: user._id,
       email: user.email,
